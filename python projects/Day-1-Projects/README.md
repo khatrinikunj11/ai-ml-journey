@@ -2,7 +2,7 @@
 
 Today I learnt about modules,variables,datatypes,strings
 
-I will make 5 projects today with explanation listed below-
+I will make 10 projects today with explanation listed below-
 
 ## Project 1 - Temperature Converter with Formatting
 
@@ -43,3 +43,33 @@ Write a program that takes a password as input and checks:
 - Contains at least one digit
 - Contains at least one uppercase letter
 - Display appropriate messages for each condition
+
+## Project 6 - Palindrome Checker
+Create a program that checks if a given word or phrase is a palindrome (reads the same forwards and backwards). Ignore spaces and case sensitivity.
+
+## Project 7 - Word Counter and Analyzer
+Write a program that takes a sentence as input and displays:
+- Total number of words
+- Total number of characters (with and without spaces)
+- The longest word in the sentence
+- How many times a specific word (user-provided) appears
+
+## Project 8 - String Slicer Game
+Create a program that takes a string input and asks the user for:
+- Starting index
+- Ending index
+- Step value
+- Then display the sliced string. Include error handling messages if indices are out of range.
+
+## Project 9 - URL Parser
+Write a program that takes a URL as input (e.g., "https://www.example.com/page") and extracts:
+- Domain name (www.example.com)
+- Path (/page)
+- Check if URL uses secure connection (https)
+
+## Project 10 - Text Formatter
+Create a program that takes a paragraph as input and:
+- Replaces all multiple spaces with single space
+- Counts the number of vowels and consonants
+- Converts the first letter of the paragraph to uppercase 
+- Displays word count
