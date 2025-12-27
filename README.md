@@ -1,5 +1,5 @@
 # ai-ml-journey
-A 2-year public AI/ML learning journey (Jan 2026–Jan 2028). Focused on fundamentals, projects, and consistency.
+A public AI/ML learning journey. Focused on fundamentals, projects, and consistency.
 
 ## X
 https://x.com/khatrinikunj11

@@ -13,7 +13,7 @@
 4. Write a program to sum a list with 4 numbers.
 5. Write a program to count the number of zeros in the following tuple: a = (7,0,8,0,0,9)
 
-# 9 Basic Projects on Lists and Tuples - 
+# 9 Basic Projects on Dictionary and Sets - 
 
 1. Write a program to create a dictionary of Hindi words with values as their English
 translation. Provide user with an option to look it up!
