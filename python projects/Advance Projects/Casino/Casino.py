@@ -3,12 +3,20 @@ from datetime import datetime
 import os
 
 def save_memory(name, money, last_login, loan_amount, loan_days):
-    with open("player_data.txt", "w") as f:
-        f.write(name + "\n")
-        f.write(str(money) + "\n")
-        f.write(last_login + "\n")
-        f.write(str(loan_amount) + "\n")
-        f.write(str(loan_days) + "\n")
+    try:
+        with open("player_data.txt", "w") as f:
+            f.write(name + "\n")
+            f.write(str(money) + "\n")
+            f.write(last_login + "\n")
+            f.write(str(loan_amount) + "\n")
+            f.write(str(loan_days) + "\n")
+    except PermissionError:
+        print("\n⚠️  WARNING: Cannot save game data!")
+        print("Please close 'player_data.txt' if it's open in another program.")
+        print("Your progress will not be saved until the file is available.")
+    except Exception as e:
+        print(f"\n⚠️  Error saving game data: {e}")
+        print("Your progress may not be saved.")
 
 def read_player_data():
     try:
@@ -66,17 +74,53 @@ def check_loan_status(name, money, loan_amount, loan_days, last_login):
         today = datetime.now().strftime("%Y-%m-%d")
         days_passed = calculate_days_difference(last_login, today)
         
-        if days_passed >= loan_days:
-            print(f"\n⚠️  LOAN DUE! You owe ${loan_amount:.2f}")
-            if money >= loan_amount:
-                print(f"Automatically paying loan of ${loan_amount:.2f}")
-                money -= loan_amount
-                loan_amount = 0
-                loan_days = 0
-                print(f"✅ Loan paid! New balance: ${money:.2f}")
+        if days_passed > 0:
+            # Calculate daily payment: $100 per day
+            daily_payment = 100.0
+            
+            # Calculate total payment needed
+            if days_passed <= loan_days:
+                # Within loan period: pay $100 per day
+                total_payment = days_passed * daily_payment
+                # Don't pay more than the remaining loan
+                total_payment = min(total_payment, loan_amount)
             else:
-                print(f"❌ BANKRUPTCY! You cannot pay your loan of ${loan_amount:.2f}")
+                # Past due date: full remaining loan is due
+                total_payment = loan_amount
+            
+            print(f"\n{'='*60}")
+            print(f"💳 LOAN PAYMENT - {days_passed} day(s) passed")
+            print(f"{'='*60}")
+            print(f"Amount due: ${total_payment:.2f}")
+            
+            if money >= total_payment:
+                print(f"✅ Automatically paying ${total_payment:.2f}")
+                money -= total_payment
+                loan_amount -= total_payment
+                loan_days -= days_passed
+                
+                # Ensure loan_days doesn't go negative
+                if loan_days < 0:
+                    loan_days = 0
+                
+                if loan_amount <= 0:
+                    loan_amount = 0
+                    loan_days = 0
+                    print(f"🎉 Loan fully paid off!")
+                else:
+                    print(f"Remaining loan: ${loan_amount:.2f}")
+                    if loan_days > 0:
+                        print(f"Days remaining: {loan_days}")
+                    else:
+                        print(f"⚠️  Loan is overdue!")
+                
+                print(f"💰 New balance: ${money:.2f}")
+                print(f"{'='*60}\n")
+            else:
+                # Can't pay the daily installment
+                print(f"❌ BANKRUPTCY! You cannot pay ${total_payment:.2f}")
                 print(f"Your balance is only ${money:.2f}")
+                print(f"Remaining loan: ${loan_amount:.2f}")
                 print("Game Over - You are bankrupt!")
                 if os.path.exists("player_data.txt"):
                     os.remove("player_data.txt")
@@ -105,7 +149,8 @@ def casino(name, money, last_login, loan_amount, loan_days):
     choice = int(input("Enter choice (1-11): "))
     
     if choice == 11:
-        return side_quest(name, money, last_login, loan_amount, loan_days)
+        money, loan_amount, loan_days = side_quest(name, money, last_login, loan_amount, loan_days)
+        return money, loan_amount, loan_days
     
     bet = float(input(f"How much do you bet? (Balance: ${money:.2f}): $"))
     while bet > money or bet <= 0:
@@ -359,7 +404,7 @@ def casino(name, money, last_login, loan_amount, loan_days):
     
     print(f"\n💰 Current balance: ${money:.2f}")
     save_memory(name, money, last_login, loan_amount, loan_days)
-    return money
+    return money, loan_amount, loan_days
 
 def side_quest(name, money, last_login, loan_amount, loan_days):
     print("\n" + "="*60)
@@ -376,7 +421,7 @@ def side_quest(name, money, last_login, loan_amount, loan_days):
     accept = input("\nAccept the challenge? (yes/no): ").lower()
     if accept != "yes":
         print("Maybe next time!")
-        return money
+        return money, loan_amount, loan_days
     
     print("\n" + "="*60)
     print("Starting the challenge...")
@@ -407,21 +452,21 @@ def side_quest(name, money, last_login, loan_amount, loan_days):
         print("\n🎉 CONGRATULATIONS! You won the challenge!")
         print("Casino gives you $1,000 loan with 0% interest!")
         money += 1000
-        loan_amount = 1000
-        loan_days = 15
+        loan_amount += 1000
+        loan_days += 15
         print("You have 15 days to pay it back!")
     else:
         print("\n😞 You didn't win enough games...")
         print("Casino takes $1,000 loan, keeps $900, gives you $100")
         print("You owe $1,200 (with 20% interest) in 15 days!")
         money += 100
-        loan_amount = 1200
-        loan_days = 15
-    
+        loan_amount += 1200
+        loan_days += 15
+
     print(f"\n💰 New balance: ${money:.2f}")
     print(f"💳 Loan amount: ${loan_amount:.2f}")
     save_memory(name, money, last_login, loan_amount, loan_days)
-    return money
+    return money, loan_amount, loan_days
 
 def bank(name, money, last_login, loan_amount, loan_days):
     print("\n" + "="*60)
@@ -503,7 +548,7 @@ def main():
             print("="*60)
             print("You have negative money and cannot continue.")
             print("Starting side quest to earn some money...")
-            money = side_quest(name, money, last_login, loan_amount, loan_days)
+            money, loan_amount, loan_days = side_quest(name, money, last_login, loan_amount, loan_days)
             if money <= 0:
                 print("\nStill broke... Game Over!")
                 if os.path.exists("player_data.txt"):
@@ -517,7 +562,7 @@ def main():
             print("💸 YOU'RE BROKE! 💸")
             print("="*60)
             print("Starting side quest to earn some money...")
-            money = side_quest(name, money, last_login, loan_amount, loan_days)
+            money, loan_amount, loan_days = side_quest(name, money, last_login, loan_amount, loan_days)
             if money <= 0:
                 print("\nGame Over!")
                 if os.path.exists("player_data.txt"):
@@ -540,7 +585,7 @@ def main():
             choice = int(input("Enter choice (1-3): "))
             
             if choice == 1:
-                money = casino(name, money, last_login, loan_amount, loan_days)
+                money, loan_amount, loan_days = casino(name, money, last_login, loan_amount, loan_days)
             elif choice == 2:
                 money, loan_amount, loan_days = bank(name, money, last_login, loan_amount, loan_days)
             elif choice == 3:
